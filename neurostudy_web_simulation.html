@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroStudy - 99% Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-container: #312E81;
+            --on-primary: #FFFFFF;
+            --secondary: #10B981;
+            --bg: #0F172A;
+            --surface: #1E293B;
+            --on-surface: #F8FAFC;
+            --on-surface-variant: #94A3B8;
+            --outline: #334155;
+            --error: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: #020617;
+            color: var(--on-surface);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Device Frame */
+        #phone-frame {
+            width: 390px;
+            height: 844px;
+            background: var(--bg);
+            border: 12px solid #334155;
+            border-radius: 55px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Status Bar Simulation */
+        .status-bar {
+            height: 44px;
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 100;
+        }
+
+        /* Screen Transitions */
+        .screen {
+            position: absolute;
+            top: 44px; bottom: 0; left: 0; right: 0;
+            padding: 24px;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+        .screen.active { display: flex; animation: androidEntrance 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+        @keyframes androidEntrance {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Component: Buttons */
+        .btn-primary {
+            background: var(--primary); color: white; border: none;
+            padding: 18px; border-radius: 20px; font-weight: 700;
+            cursor: pointer; width: 100%; margin-bottom: 12px;
+            font-size: 15px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:active { transform: scale(0.96); }
+        .btn-text {
+            background: transparent; border: 2px solid var(--outline); color: var(--on-surface);
+            padding: 16px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 12px;
+        }
+
+        /* Component: Cards */
+        .session-card {
+            background: var(--surface);
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .session-card:active { transform: scale(0.98); background: #2d3748; }
+
+        /* Progress Bar */
+        .progress-container { height: 8px; background: #0f172a; border-radius: 10px; margin: 16px 0 8px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); border-radius: 10px; transition: width 1.5s ease; box-shadow: 0 0 10px var(--primary); }
+
+        /* Step 3: Method Chips */
+        .chips { display: flex; gap: 12px; margin-bottom: 32px; }
+        .chip { flex: 1; padding: 14px; border-radius: 16px; background: var(--surface); text-align: center; font-size: 14px; font-weight: 700; cursor: pointer; border: 2px solid var(--outline); color: var(--on-surface-variant); }
+        .chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        /* Step 4: Chat UI */
+        .chat-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+        .bot-live-chip { background: var(--surface); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; border: none; }
+
+        #chat-area { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 10px 0; }
+        .bubble { max-width: 80%; padding: 16px 20px; border-radius: 24px; font-size: 15px; line-height: 1.5; }
+        .ai-bubble { background: var(--surface); align-self: flex-start; border-bottom-left-radius: 4px; color: #E2E8F0; }
+        .user-bubble { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 4px; color: white; font-weight: 500; }
+
+        .input-group { display: flex; gap: 12px; background: var(--bg); padding: 12px 0; }
+        .chat-input { flex: 1; background: var(--surface); border: 2px solid var(--outline); border-radius: 30px; padding: 14px 24px; color: white; outline: none; font-size: 15px; }
+        .chat-input:focus { border-color: var(--primary); }
+
+        /* Interactive Graph (Discovery) */
+        .graph-view { background: #000; border-radius: 24px; padding: 20px; margin: 12px 0; text-align: center; }
+        .slider-md { width: 100%; height: 6px; border-radius: 5px; background: #334155; outline: none; -webkit-appearance: none; margin: 20px 0; }
+        .slider-md::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); cursor: pointer; border: 4px solid white; }
+
+        /* Step 5: Quiz */
+        .timer-md { width: 100px; height: 100px; border: 6px solid var(--error); border-radius: 50%; margin: 0 auto 24px; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 28px; color: var(--error); }
+        .radio-card { padding: 20px; border: 2px solid var(--outline); border-radius: 20px; margin-bottom: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 600; }
+        .radio-card.selected { border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
+        .radio-dot { width: 20px; height: 20px; border: 2px solid var(--outline); border-radius: 50%; }
+        .selected .radio-dot { border: 6px solid var(--primary); }
+
+        /* Step 6: Indicators */
+        .circle-indicator { width: 140px; height: 140px; position: relative; margin: 0 auto; }
+        .circle-svg { transform: rotate(-90deg); width: 140px; height: 140px; }
+        .circle-bg { fill: none; stroke: var(--outline); stroke-width: 10; }
+        .circle-bar { fill: none; stroke: var(--primary); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 2s cubic-bezier(0.1, 0.7, 0.1, 1); }
+
+        .copyright { margin-top: auto; text-align: center; color: var(--primary); font-weight: 800; padding: 32px 0; font-size: 14px; letter-spacing: 0.5px; }
+
+        #toast {
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: #1E293B; color: white; padding: 14px 24px; border-radius: 40px;
+            font-size: 13px; font-weight: 700; z-index: 200; border: 1px solid var(--primary);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+
+        ::-webkit-scrollbar { width: 0; }
+    </style>
+</head>
+<body>
+
+<div id="toast">🧠 Neuro Bot: Fokus teralihkan!</div>
+
+<div id="phone-frame">
+    <div class="status-bar">
+        <span>9:41</span>
+        <div style="display:flex; gap:6px;">📡 📶 🔋</div>
+    </div>
+
+    <!-- STEP 1: HOME -->
+    <div id="step1" class="screen active">
+        <div style="width:72px; height:72px; background:linear-gradient(135deg, #6366F1, #818CF8); border-radius:22px; margin:40px auto 20px; display:flex; justify-content:center; align-items:center; font-size:40px; box-shadow:0 10px 25px rgba(99,102,241,0.4);">🧠</div>
+        <h1 style="text-align:center; font-size:36px; font-weight:800; letter-spacing:-1.5px;">NeuroStudy</h1>
+        <p style="text-align:center; color:var(--on-surface-variant); margin-bottom:48px; font-size:15px; font-weight:500;">Optimalisasi Kognitif dengan Kecerdasan Neural</p>
+
+        <p style="font-size:11px; font-weight:800; color:var(--on-surface-variant); margin-bottom:12px; letter-spacing:1.5px;">SESI BELAJAR AKTIF</p>
+        <div class="session-card" onclick="startLearning('Discovery')">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div style="font-size:28px; color:var(--primary);">📅</div>
+                <div style="flex:1;">
+                    <p style="font-weight:800; font-size:17px;">Bab 2: Turunan</p>
+                    <p style="font-size:13px; color:var(--on-surface-variant); margin-top:2px;">Mode: Discovery</p>
+                </div>
+            </div>
+            <div class="progress-container"><div class="progress-fill" style="width:45%"></div></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                <p style="font-size:12px; color:var(--on-surface-variant); font-weight:600;">Kemajuan Materi</p>
+                <p style="font-size:13px; font-weight:800; color:var(--primary);">45%</p>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="goToStep(2)">📖 Gunakan Buku Referensi</button>
+        <button class="btn-text" onclick="goToStep(3)">🔍 Beri Tahu Topik</button>
+
+        <div class="copyright">© 2026 Created by Radit</div>
+    </div>
+
+    <!-- STEP 2: BOOK SELECTION -->
+    <div id="step2" class="screen">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:32px;">
+             <button onclick="goToStep(1)" style="background:none; border:none; color:white; font-size:28px; cursor:pointer;">←</button>
+             <h2 style="font-size:24px; font-weight:800;">Pilih Referensi</h2>
+        </div>
+        <div class="session-card" onclick="goToStep(3)">
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div style="font-size:40px;">📗</div>
+                <div>
+                    <p style="font-weight:800; font-size:18px;">Kalkulus - Purcell</p>
+                    <p style="font-size:13px; color:var(--on-surface-variant);">Edisi ke-9 • 450 Halaman</p>
+                </div>
+            </div>
+        </div>
+        <div class="session-card" style="opacity: 0.5;">
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div style="font-size:40px;">📙</div>
+                <div>
+                    <p style="font-weight:800; font-size:18px;">Thomas' Calculus</p>
+                    <p style="font-size:13px; color:var(--on-surface-variant);">Edisi ke-14 • 1100 Halaman</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: SMART STUDY METHOD -->
+    <div id="step3" class="screen">
+        <h2 style="margin-bottom:32px; font-size:26px; font-weight:800;">Smart Study Method</h2>
+
+        <p style="font-size:12px; font-weight:800; margin-bottom:12px; color:var(--on-surface-variant); letter-spacing:1px;">DURASI SESI</p>
+        <div class="chips">
+            <div class="chip active" onclick="selectTime(15, this)">15 Min</div>
+            <div class="chip" onclick="selectTime(30, this)">30 Min</div>
+            <div class="chip" onclick="selectTime(60, this)">60 Min</div>
+        </div>
+
+        <p style="font-size:12px; font-weight:800; margin-bottom:12px; color:var(--on-surface-variant); letter-spacing:1px;">METODE PEMBELAJARAN</p>
+        <div class="session-card" style="padding:20px; margin-bottom:12px;" onclick="startLearning('Ekspositori')">
+            <p style="font-weight:800; font-size:17px;">Metode Ekspositori</p>
+            <p style="font-size:13px; color:var(--on-surface-variant); margin-top:4px;">Penjelasan intensif & drill soal cepat.</p>
+        </div>
+        <div class="session-card" style="padding:20px; margin-bottom:12px;" onclick="startLearning('Inquiry')">
+            <p style="font-weight:800; font-size:17px;">Inquiry Learning</p>
+            <p style="font-size:13px; color:var(--on-surface-variant); margin-top:4px;">Analisis data & pembuktian hipotesis.</p>
+        </div>
+        <div class="session-card" style="padding:20px; margin-bottom:12px;" onclick="startLearning('Discovery')">
+            <p style="font-weight:800; font-size:17px;">Discovery Learning</p>
+            <p style="font-size:13px; color:var(--on-surface-variant); margin-top:4px;">Eksperimen mandiri & penemuan pola.</p>
+        </div>
+    </div>
+
+    <!-- STEP 4: INTERACTIVE DISCUSSION -->
+    <div id="chat" class="screen">
+        <div class="chat-header">
+            <button onclick="goToStep(1)" style="background:none; border:none; color:white; font-size:28px; cursor:pointer;">✕</button>
+            <div style="flex:1"><h3 id="chat-title" style="font-size:19px; font-weight:800;">Neuro Path: Kalkulus</h3></div>
+            <div class="bot-live-chip">NEURO BOT LIVE</div>
+        </div>
+
+        <div id="rundown-card" style="background:var(--surface); padding:20px; border-radius:24px; border-left:6px solid var(--primary); font-size:13px; margin-bottom:20px; line-height:1.6;"></div>
+
+        <div id="chat-area"></div>
+
+        <div class="input-group">
+            <input type="text" id="chat-input" placeholder="Tanya Neuro Bot..." class="chat-input">
+            <button onclick="handleSend()" style="background:var(--primary); border:none; border-radius:50%; width:54px; height:54px; color:white; font-size:24px; cursor:pointer; box-shadow:0 4px 15px rgba(99,102,241,0.4);">➤</button>
+        </div>
+
+        <button class="btn-primary" style="background:var(--secondary); margin-top:10px; border-radius:24px; box-shadow:none;" onclick="goToStep(5)">Mulai Kuis Neuro Bot</button>
+    </div>
+
+    <!-- STEP 5: QUIZ SCREEN -->
+    <div id="step5" class="screen">
+        <div class="timer-md" id="quiz-timer">00:15</div>
+        <h3 style="margin-bottom:12px; font-size:22px; font-weight:800;">Kuis Cepat</h3>
+        <p style="font-size:16px; line-height:1.6; margin-bottom:32px; color:#E2E8F0;">Jika f(x) = 3x² + 5, maka nilai dari turunan pertama f'(x) adalah...</p>
+
+        <div id="options">
+            <div class="radio-card" onclick="selectOption(this, false)"><div class="radio-dot"></div> A. 3x</div>
+            <div class="radio-card" onclick="selectOption(this, true)"><div class="radio-dot"></div> B. 6x</div>
+            <div class="radio-card" onclick="selectOption(this, false)"><div class="radio-dot"></div> C. 6x + 5</div>
+            <div class="radio-card" onclick="selectOption(this, false)"><div class="radio-dot"></div> D. 3x + 5</div>
+        </div>
+
+        <div id="explanation" style="display:none; background:rgba(16, 185, 129, 0.1); padding:24px; border-radius:24px; margin-top:20px; border:1.5px solid var(--secondary);">
+            <p style="color:var(--secondary); font-weight:800; margin-bottom:10px; font-size:14px;">Neuro Bot Explanation:</p>
+            <p style="line-height:1.6; font-size:14px;">Sesuai aturan pangkat (Power Rule), turunan dari axⁿ adalah n·axⁿ⁻¹. Maka 2 * 3x²⁻¹ = 6x. Konstanta 5 hilang saat diturunkan.</p>
+            <button class="btn-text" style="margin-top:20px; border-radius:16px; padding:12px; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">▶ Tonton Video Penjelasan Neuro Bot</button>
+        </div>
+
+        <button class="btn-primary" id="btn-submit-quiz" style="margin-top:auto;" onclick="submitQuiz()">Kirim Jawaban</button>
+        <button class="btn-primary" id="btn-finish" style="display:none; background:var(--secondary); margin-top:auto;" onclick="goToStep(6)">Lihat Analisis Akhir</button>
+    </div>
+
+    <!-- STEP 6: EVALUATION RESULT -->
+    <div id="step6" class="screen">
+        <h2 style="text-align:center; margin-top:30px; font-size:28px; font-weight:800;">Hasil Analisis</h2>
+
+        <div style="display:flex; justify-content:space-around; margin-top:48px;">
+            <div style="text-align:center;">
+                <div class="circle-indicator">
+                    <svg class="circle-svg"><circle class="circle-bg" cx="70" cy="70" r="65"/><circle id="score-bar" class="circle-bar" cx="70" cy="70" r="65"/></svg>
+                    <div class="stat-text" style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; font-size:28px; font-weight:800;">90%</div>
+                </div>
+                <p style="font-size:12px; font-weight:800; color:var(--on-surface-variant); margin-top:12px; letter-spacing:1px;">SKOR BELAJAR</p>
+            </div>
+            <div style="text-align:center;">
+                <div class="circle-indicator">
+                    <svg class="circle-svg"><circle class="circle-bg" cx="70" cy="70" r="65"/><circle id="conc-bar" class="circle-bar" cx="70" cy="70" r="65" style="stroke:var(--secondary);"/></svg>
+                    <div class="stat-text" style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; font-size:28px; font-weight:800; color:var(--secondary);">85%</div>
+                </div>
+                <p style="font-size:12px; font-weight:800; color:var(--on-surface-variant); margin-top:12px; letter-spacing:1px;">KONSENTRASI</p>
+            </div>
+        </div>
+
+        <div style="background:var(--surface); padding:28px; border-radius:32px; margin-top:54px; text-align:center; font-size:16px; line-height:1.7; border:1px solid var(--outline);">
+            "Luar biasa Radit! Kamu menguasai dasar Kalkulus Purcell dengan fokus yang sangat tajam. Neuro Bot mencatat efisiensi belajarmu di atas rata-rata."
+        </div>
+
+        <button class="btn-primary" style="margin-top:auto; border-radius:24px;" onclick="goToStep(1)">Selesaikan Sesi</button>
+        <div class="copyright">© 2026 Created by Radit</div>
+    </div>
+</div>
+
+<script>
+    let currentMode = '';
+    let selectedMinutes = 15;
+    let timerInterval;
+
+    // Simulate Focus Loss
+    window.addEventListener('blur', function() {
+        if (currentMode !== '') {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    });
+
+    function goToStep(step) {
+        document.querySelectorAll('.screen').forEach(s => {
+            s.classList.remove('active');
+            s.style.display = 'none';
+        });
+        const target = document.getElementById(step === 'chat' ? 'chat' : 'step' + step);
+        target.style.display = 'flex';
+        setTimeout(() => target.classList.add('active'), 10);
+
+        if (step === 5) startQuizTimer();
+        if (step === 6) animateCircles();
+        if (step !== 5) clearInterval(timerInterval);
+    }
+
+    function selectTime(min, el) {
+        selectedMinutes = min;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function startLearning(mode) {
+        currentMode = mode;
+        goToStep('chat');
+        const rundown = document.getElementById('rundown-card');
+        const chatArea = document.getElementById('chat-area');
+        chatArea.innerHTML = '';
+
+        let plan = "";
+        if(mode === 'Ekspositori') plan = "• Review Rumus Cepat (5m)\n• Latihan Soal Terbimbing (10m)\n• Drill Soal Mandiri (15m)";
+        else if(mode === 'Inquiry') plan = "• Pemunculan Masalah (5m)\n• Diskusi Hipotesis (10m)\n• Penarikan Kesimpulan (15m)";
+        else plan = "• Observasi Simulasi (10m)\n• Identifikasi Pola (10m)\n• Pembuktian Konsep (10m)";
+
+        rundown.innerHTML = `<span style="color:var(--primary); font-weight:800;">Neuro Path:</span> ${mode} (${selectedMinutes} menit)<br>${plan.replace(/\n/g, '<br>')}`;
+
+        addMessage("Neuro Bot sedang berpikir...", false, true);
+        setTimeout(() => {
+            document.querySelector('.thinking')?.remove();
+            simulateContent(mode);
+        }, 1500);
+    }
+
+    function simulateContent(mode) {
+        if(mode === 'Ekspositori') {
+            addMessage("Neuro Bot: Selamat datang di sesi Ekspositori. Saya sudah menyiapkan ringkasan rumus penting untukmu.");
+            addFormulaCard();
+            setTimeout(() => addMessage("Neuro Bot: Sudah paham aturannya? Mari kita coba soal Purcell: Tentukan turunan dari f(x) = 3x^4 - 2x^2 + 5."), 2000);
+        } else if(mode === 'Inquiry') {
+            addMessage("Neuro Bot: Mari kita mulai penyelidikan. Perhatikan tabel nilai fungsi f(x)=1/x saat x menjadi sangat besar berikut ini.");
+            addTable();
+            setTimeout(() => addMessage("Neuro Bot: Menurutmu, apakah nilai f(x) akan pernah mencapai tepat angka 0?"), 2000);
+        } else {
+            addMessage("Neuro Bot: [SIMULASI] Perhatikan grafik y=x² di bawah ini. Geser slider untuk mengamati perubahan kemiringan (Slope).");
+            addGraph();
+        }
+    }
+
+    function addMessage(text, isUser = false, isThinking = false) {
+        const area = document.getElementById('chat-area');
+        const b = document.createElement('div');
+        b.className = `bubble ${isUser ? 'user-bubble' : 'ai-bubble'} ${isThinking ? 'thinking' : ''}`;
+        b.innerText = text;
+        area.appendChild(b);
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function addFormulaCard() {
+        const area = document.getElementById('chat-area');
+        const card = document.createElement('div');
+        card.style = "background:#0f172a; padding:16px; border-radius:20px; border:1px solid var(--outline); font-family:monospace; color:#FBBF24; font-size:14px; margin:8px 0;";
+        card.innerHTML = "f(x) = xⁿ → f'(x) = n·xⁿ⁻¹<br>f(x) = sin(x) → f'(x) = cos(x)";
+        area.appendChild(card);
+    }
+
+    function addTable() {
+        const area = document.getElementById('chat-area');
+        area.innerHTML += `<table style="width:100%; border-collapse:collapse; background:#0f172a; border-radius:15px; overflow:hidden; font-size:13px; margin:10px 0; border:1px solid var(--outline);">
+            <tr style="background:#1e293b;"><th style="padding:10px;">x</th><td style="padding:10px;">10</td><td style="padding:10px;">100</td><td style="padding:10px;">1000</td></tr>
+            <tr><th style="padding:10px;">f(x)</th><td style="padding:10px;">0.1</td><td style="padding:10px;">0.01</td><td style="padding:10px;">0.001</td></tr>
+        </table>`;
+    }
+
+    function addGraph() {
+        const area = document.getElementById('chat-area');
+        const g = document.createElement('div');
+        g.className = 'graph-view';
+        g.innerHTML = `<div style="height:100px; display:flex; align-items:flex-end; justify-content:center; gap:2px;" id="visual-bars"></div>
+                       <input type="range" class="slider-md" value="5" min="1" max="20" oninput="updateBars(this.value)">
+                       <p id="slope-text" style="font-size:12px; font-weight:700; color:var(--primary);">Kemiringan: 10.0</p>`;
+        area.appendChild(g);
+        updateBars(5);
+    }
+
+    function updateBars(val) {
+        const container = document.getElementById('visual-bars');
+        if(!container) return;
+        container.innerHTML = '';
+        for(let i=0; i<parseInt(val); i++) {
+            const bar = document.createElement('div');
+            bar.style = `width:10px; height:${(i+1)*5}px; background:var(--primary); border-radius:2px; opacity:${(i+1)/val}`;
+            container.appendChild(bar);
+        }
+        document.getElementById('slope-text').innerText = `Kemiringan: ${(val*2).toFixed(1)}`;
+    }
+
+    function handleSend() {
+        const input = document.getElementById('chat-input');
+        if(!input.value) return;
+        addMessage(input.value, true);
+        input.value = '';
+        setTimeout(() => addMessage("Neuro Bot: Analisis neural saya menunjukkan pemahamanmu sudah di jalur yang benar!"), 1500);
+    }
+
+    function startQuizTimer() {
+        let timeLeft = 15;
+        const display = document.getElementById('quiz-timer');
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            display.innerText = `00:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
+            if(timeLeft <= 5) {
+                display.style.color = 'var(--error)';
+                display.style.transform = 'scale(1.1)';
+            }
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                submitQuiz();
+            }
+        }, 1000);
+    }
+
+    function selectOption(el, isCorrect) {
+        if(document.getElementById('explanation').style.display === 'block') return;
+        document.querySelectorAll('.radio-card').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function submitQuiz() {
+        clearInterval(timerInterval);
+        document.getElementById('explanation').style.display = 'block';
+        document.getElementById('btn-submit-quiz').style.display = 'none';
+        document.getElementById('btn-finish').style.display = 'block';
+        document.querySelectorAll('.radio-card').forEach(o => o.style.pointerEvents = 'none');
+    }
+
+    function animateCircles() {
+        setTimeout(() => {
+            const scoreBar = document.getElementById('score-bar');
+            const concBar = document.getElementById('conc-bar');
+            // C = 2 * PI * r = 2 * 3.14 * 65 = 408
+            scoreBar.style.strokeDashoffset = 408 - (408 * 0.90);
+            concBar.style.strokeDashoffset = 408 - (408 * 0.85);
+        }, 400);
+    }
+</script>
+
+</body>
+</html>
